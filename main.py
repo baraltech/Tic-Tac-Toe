@@ -13,8 +13,6 @@ BOARD = pygame.image.load("assets/Board.png")
 X_IMG = pygame.image.load("assets/X.png")
 O_IMG = pygame.image.load("assets/O.png")
 
-WINNING_LINE = pygame.transform.scale(pygame.image.load("assets/Winning Line.png"), (770, 100))
-
 BG_COLOR = (214, 201, 227)
 
 board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -36,7 +34,6 @@ def render_board(lettered_board, ximg, oimg):
                 graphical_board[i][j][1] = oimg.get_rect(center=(j*300+150, i*300+150))
 
 def check_win(board):
-    global WINNING_LINE
     winner = None
     for row in range(0, 3):
         if((board[row][0] == board[row][1] == board[row][2]) and (board [row][0] is not None)):
@@ -78,11 +75,13 @@ def check_win(board):
         SCREEN.blit(graphical_board[2][0][0], graphical_board[2][0][1])
         pygame.display.update()
         return winner
-   
-    if(all([all(row) for row in board]) and winner is None):
-        return "DRAW"
     
-    return None
+    if winner is None:
+        for i in range(len(board)):
+            for j in range(len(board)):
+                if board[i][j] != 'X' and board[i][j] != 'O':
+                    return None
+        return "DRAW"
 
 def add_XO(board, graphical_board, to_move):
     current_pos = pygame.mouse.get_pos()
@@ -91,7 +90,7 @@ def add_XO(board, graphical_board, to_move):
     if board[round(converted_y)][round(converted_x)] != 'O' and board[round(converted_y)][round(converted_x)] != 'X':
         board[round(converted_y)][round(converted_x)] = to_move
         if to_move == 'O':
-                to_move = 'X'
+            to_move = 'X'
         else:
             to_move = 'O'
 
@@ -107,6 +106,8 @@ SCREEN.blit(BOARD, (64, 64))
 
 pygame.display.update()
 
+game_finished = False
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -115,25 +116,22 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             
             board, to_move = add_XO(board, graphical_board, to_move)
-            
-            
-            if check_win(board) is not None:
-                if check_win(board) == 'X':
-                    print("X wins")
-                elif check_win(board) == 'O':
-                    print("O wins")
-                elif check_win(board) == "DRAW":
-                    print("Draw")
-                
-                # board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-                # graphical_board = [[[None, None], [None, None], [None, None]], 
-                #                     [[None, None], [None, None], [None, None]], 
-                #                     [[None, None], [None, None], [None, None]]]
-                # to_move = 'X'
-                # SCREEN.fill(BG_COLOR)
-                # SCREEN.blit(BOARD, (64, 64))
 
-                # pygame.display.update()
+            if game_finished:
+                board = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+                graphical_board = [[[None, None], [None, None], [None, None]], 
+                                    [[None, None], [None, None], [None, None]], 
+                                    [[None, None], [None, None], [None, None]]]
+                to_move = 'X'
+                game_finished = False
+                SCREEN.fill(BG_COLOR)
+                SCREEN.blit(BOARD, (64, 64))
+
+                pygame.display.update()
+
+            if check_win(board) is not None:
+
+                game_finished = True
 
             pygame.display.update()
 
