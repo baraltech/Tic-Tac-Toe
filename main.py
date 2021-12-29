@@ -1,10 +1,8 @@
-import pygame, sys, random
+import pygame, sys
  
 pygame.init()
  
 WIDTH, HEIGHT = 900, 900
- 
-FONT = pygame.font.Font("assets/Roboto-Regular.ttf", 100)
  
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tic Tac Toe!")
@@ -22,16 +20,44 @@ graphical_board = [[[None, None], [None, None], [None, None]],
 
 to_move = 'X'
 
-def render_board(lettered_board, ximg, oimg):
+SCREEN.fill(BG_COLOR)
+SCREEN.blit(BOARD, (64, 64))
+
+pygame.display.update()
+
+def render_board(board, ximg, oimg):
     global graphical_board
-    for i in range(len(lettered_board)):
-        for j in range(len(lettered_board)):
-            if lettered_board[i][j] == 'X':
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 'X':
+                # Create an X image and rect
                 graphical_board[i][j][0] = ximg
                 graphical_board[i][j][1] = ximg.get_rect(center=(j*300+150, i*300+150))
-            elif lettered_board[i][j] == 'O':
+            elif board[i][j] == 'O':
                 graphical_board[i][j][0] = oimg
                 graphical_board[i][j][1] = oimg.get_rect(center=(j*300+150, i*300+150))
+
+def add_XO(board, graphical_board, to_move):
+    current_pos = pygame.mouse.get_pos()
+    converted_x = (current_pos[0]-65)/835*2
+    converted_y = current_pos[1]/835*2
+    if board[round(converted_y)][round(converted_x)] != 'O' and board[round(converted_y)][round(converted_x)] != 'X':
+        board[round(converted_y)][round(converted_x)] = to_move
+        if to_move == 'O':
+            to_move = 'X'
+        else:
+            to_move = 'O'
+    
+    render_board(board, X_IMG, O_IMG)
+
+    for i in range(3):
+        for j in range(3):
+            if graphical_board[i][j][0] is not None:
+                SCREEN.blit(graphical_board[i][j][0], graphical_board[i][j][1])
+    
+    return board, to_move
+
+game_finished = False
 
 def check_win(board):
     winner = None
@@ -47,7 +73,6 @@ def check_win(board):
     for col in range(0, 3):
         if((board[0][col] == board[1][col] == board[2][col]) and (board[0][col] is not None)):
             winner =  board[0][col]
-            print(graphical_board[0][col])
             for i in range(0, 3):
                 graphical_board[i][col][0] = pygame.image.load(f"assets/Winning {winner}.png")
                 SCREEN.blit(graphical_board[i][col][0], graphical_board[i][col][1])
@@ -83,38 +108,12 @@ def check_win(board):
                     return None
         return "DRAW"
 
-def add_XO(board, graphical_board, to_move):
-    current_pos = pygame.mouse.get_pos()
-    converted_x = (current_pos[0]-65)/835*2
-    converted_y = current_pos[1]/835*2
-    if board[round(converted_y)][round(converted_x)] != 'O' and board[round(converted_y)][round(converted_x)] != 'X':
-        board[round(converted_y)][round(converted_x)] = to_move
-        if to_move == 'O':
-            to_move = 'X'
-        else:
-            to_move = 'O'
-
-    render_board(board, X_IMG, O_IMG)
-    for i in range(len(graphical_board)):
-        for j in range(len(graphical_board)):
-            if graphical_board[i][j][0] is not None:
-                SCREEN.blit(graphical_board[i][j][0], graphical_board[i][j][1])
-    return board, to_move
-    
-SCREEN.fill(BG_COLOR)
-SCREEN.blit(BOARD, (64, 64))
-
-pygame.display.update()
-
-game_finished = False
-
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            
             board, to_move = add_XO(board, graphical_board, to_move)
 
             if game_finished:
@@ -122,16 +121,17 @@ while True:
                 graphical_board = [[[None, None], [None, None], [None, None]], 
                                     [[None, None], [None, None], [None, None]], 
                                     [[None, None], [None, None], [None, None]]]
+
                 to_move = 'X'
-                game_finished = False
+
                 SCREEN.fill(BG_COLOR)
                 SCREEN.blit(BOARD, (64, 64))
 
+                game_finished = False
+
                 pygame.display.update()
-
+            
             if check_win(board) is not None:
-
                 game_finished = True
-
+            
             pygame.display.update()
-
